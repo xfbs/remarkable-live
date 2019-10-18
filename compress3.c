@@ -13,18 +13,22 @@
 void output_rle(uint8_t *buffer) {
     size_t pos = 0;
 
-    size_t max = 2 * sizeof(framebuffer);
+    // 2 bytes per pixel in original output
+    size_t max = 2 * WIDTH * HEIGHT;
 
     while(pos < max) {
+        // read single pixel
         uint8_t pixel = buffer[pos + 1];
         uint8_t length = 1;
         pos += 2;
 
+        // get length of pixel
         while(pos < max && buffer[pos + 1] == pixel && length < 255) {
             pos += 2;
             length++;
         }
 
+        // put out pixel + length
         fputc(pixel, stdout);
         fputc(length, stdout);
     }
@@ -49,8 +53,7 @@ int main(int argc, char *argv[]) {
 
     assert(addr);
 
-    // grab data
-    fill_framebuffer(addr);
+    output_rle(addr);
 
     return 0;
 }

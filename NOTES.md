@@ -59,4 +59,49 @@ still is too slow to be useful, the raw reading is so slow that I can only get
 9 frames per second. My idea is to rewrite it using `mmap`, which might be
 faster.
 
+I rewrite it using `mmap`, and much to my surprise, the version (`compress2`)
+using `mmap` is slower than the original, by a factor of 2 (this is with it doing 30 iterations).
 
+	remarkable: ~/ time ./compress /dev/fb0 > out.1
+
+	real    0m2.428s
+	user    0m0.900s
+	sys     0m0.970s
+	remarkable: ~/ time ./compress2 /dev/fb0 > out.2
+
+	real    0m5.396s
+	user    0m4.520s
+	sys     0m0.340s
+
+That is no good, no good at all. I don't really know why this is. One thing
+that is good tho is that despite it taking higher overall time, the time spent
+in the kernel (sys time) is lower. This means that something we do in userspace
+is skewing the results, somehow.
+
+I do manage to remedy the situation by figuring out how to add compiler flags,
+and when compiling both with maximum optimisation enabled (`-O3` flag to
+`gcc`), I get a much better result.
+
+	remarkable: ~/ time ./compress /dev/fb0 > out.1
+
+	real    0m2.288s
+	user    0m0.930s
+	sys     0m0.920s
+	remarkable: ~/ time ./compress2 /dev/fb0 > out.2
+
+	real    0m1.373s
+	user    0m0.640s
+	sys     0m0.340s
+
+This looks very promising — the fact that I can get 30 copies of the
+framebuffer compressed in a bit more than a second means that 30 fps video is
+maybe possible after all. Ish.
+
+## Run-length encoding
+
+What I want to do is to somehow compress the raw framebuffer data even more. My
+idea is that if I reduce the amount of I/O being done, I can get the speed to
+be even better. For this, I propose using run-length encoding, because this
+seems to be somewhat optimal for the use-case here. Most of the pages seem to
+be made up of just white/black space, which is an optimal use case for
+run-length encoding.
