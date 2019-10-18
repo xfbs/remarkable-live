@@ -1,13 +1,13 @@
 all: compress compress2 fbtopng fb8topng
 
 compress: compress.c
-	$(CC) -o $@ $<
+	$(CC) $(CFLAGS) -o $@ $<
 
 compress2: compress2.c
-	$(CC) -g -o $@ $<
+	$(CC) $(CFLAGS) -o $@ $<
 
 fbtopng: fbtopng.c
-	$(CC) -o $@ $< -lpng
+	$(CC) $(CFLAGS) -o $@ $< -lpng
 
 fb8topng: fb8topng.c
-	$(CC) -o $@ $< -lpng
+	$(CC) $(CFLAGS) -o $@ $< -lpng
